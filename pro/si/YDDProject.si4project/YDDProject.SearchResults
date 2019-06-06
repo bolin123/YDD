@@ -1,0 +1,12 @@
+---- SysCollectArgs_t Matches (11 in 4 files) ----
+DataCollectStart in DataCollect.c (F:\project\YDD\software\YDD\src\App) :     SysCollectArgs_t args;
+Sys.c (F:\project\YDD\software\YDD\src\Sys) line 87 : void SysCollectArgsGet(SysCollectArgs_t *args)
+SysCollectArgsGet in Sys.c (F:\project\YDD\software\YDD\src\Sys) :         HalFlashRead(HAL_DEVICE_ARGS_ADDR, (uint8_t *)args, sizeof(SysCollectArgs_t));
+SysCollectArgsGet in Sys.c (F:\project\YDD\software\YDD\src\Sys) :             HalFlashWrite(HAL_DEVICE_ARGS_ADDR, (const uint8_t *)args, sizeof(SysCollectArgs_t));
+Sys.c (F:\project\YDD\software\YDD\src\Sys) line 106 : void SysCollectArgsSet(SysCollectArgs_t *args)
+SysCollectArgsSet in Sys.c (F:\project\YDD\software\YDD\src\Sys) :         HalFlashWrite(HAL_DEVICE_ARGS_ADDR, (const uint8_t *)args, sizeof(SysCollectArgs_t));
+startupLog in Sys.c (F:\project\YDD\software\YDD\src\Sys) :     SysCollectArgs_t args;
+{anonSysCollectArgs_t} in Sys.h (F:\project\YDD\software\YDD\src\Sys) : }SysCollectArgs_t; 
+Sys.h (F:\project\YDD\software\YDD\src\Sys) line 71 : void SysCollectArgsGet(SysCollectArgs_t *args);
+Sys.h (F:\project\YDD\software\YDD\src\Sys) line 72 : void SysCollectArgsSet(SysCollectArgs_t *args);
+TestCollectInit in testCollect.c (F:\project\YDD\software\YDD\src\App) :     SysCollectArgs_t args;
