@@ -32,13 +32,15 @@ static void delay(void)
 static void eventHandle(uint8_t keyval, KeyStatus_t status, bool longpress, uint32_t lastTime)
 {
     Syslog("key = %d, status = %d, longpress = %d, time = %d", keyval, status, longpress, lastTime);
-    if(status == KEY_STATUS_RELEASE)
-    {
-        HalBeepSet(20);
-    }
+    
     if(g_eventHandle != NULL)
     {
         g_eventHandle(keyval, status, longpress, lastTime);
+    }
+    
+    if(status == KEY_STATUS_RELEASE)
+    {
+        HalBeepSet(20);
     }
 }
 

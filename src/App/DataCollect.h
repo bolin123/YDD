@@ -32,9 +32,13 @@ typedef enum
     DATA_COLLECT_EVENT_DONE,
 }DataCollectEvent_t;
 
+typedef void (* DataCollectEventHandle_t)(DataCollectEvent_t event, uint8_t chn, void *args);
+
 DataCollect_st *DataCollectCreate(void);
+bool DataCollectIsStart(DataCollect_st *dcollect);
 void DataCollectStop(DataCollect_st *dcollect);
 void DataCollectStart(uint32_t address, DataCollect_st *dcollect);
+void DataCollectInitialize(DataCollectEventHandle_t eventHandle);
 void DataCollectPoll(DataCollect_st *dcollect);
 
 #endif

@@ -23,7 +23,7 @@ void HalDACInitialize(void)
     DAC_DMACmd(DAC_Channel_1, DISABLE);		//≤ª π”√DMA
     DAC_Cmd(DAC_Channel_1, ENABLE);
 
-    HalDACSetValue(1892);
+    //HalDACSetValue(HAL_DAC_BASE_VALUE);
 }
 
 void HalDACPoll(void)

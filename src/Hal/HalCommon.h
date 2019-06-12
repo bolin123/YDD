@@ -14,7 +14,7 @@
 #include "HalExti.h"
 
 void HalBeepSet(uint16_t ms);
-void HalCommonStatusLedSet(uint8_t blink);
+void HalBeepEnable(bool enable);
 uint32_t HalGetSysTimeCount(void);
 void HalInterruptSet(bool enable);
 void HalTimerPast1ms(void);

@@ -184,7 +184,11 @@ void LCDInitialize(void)
         lcdDataSend(0x00, NULL, 0);
         HalWaitMs(500);
         count++;
-    }while(!g_lcdConneted || (count < 6));
+        if(count >= 8)
+        {
+            SysReboot();
+        }
+    }while(!g_lcdConneted);
     
 }
 

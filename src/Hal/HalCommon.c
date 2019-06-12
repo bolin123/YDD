@@ -4,6 +4,7 @@ static volatile uint32_t g_sysTimeCount = 0;
 uint8_t g_commonBuff[4096];
 static bool g_beepStart = false;
 static uint32_t g_beepStopTime;
+static bool g_beepEnable = true;
 
 static void halIOUartSendbyte(uint8_t val);
 
@@ -32,10 +33,19 @@ static void halIOUartSendbyte(uint8_t val)
 
 void HalBeepSet(uint16_t ms)
 {
-    g_beepStopTime = g_sysTimeCount + ms;
-    g_beepStart = true;
+    if(g_beepEnable)
+    {
+        g_beepStopTime = g_sysTimeCount + ms;
+        g_beepStart = true;
     
-    HalGPIOSetLevel(HAL_BEEP_CTRL_PIN, 1);
+        HalGPIOSetLevel(HAL_BEEP_CTRL_PIN, 1);
+    }
+}
+
+void HalBeepEnable(bool enable)
+{
+    g_beepEnable = enable;
+    HalGPIOSetLevel(HAL_BEEP_CTRL_PIN, 0);
 }
 
 static void beepCtrl(void)
@@ -111,8 +121,8 @@ static void halInit(void)
 {
     HalGPIOConfig(HAL_IO_UART_PIN, HAL_IO_OUTPUT);
     HalGPIOConfig(HAL_BEEP_CTRL_PIN, HAL_IO_OUTPUT);
-    //beep 
-    HalBeepSet(100);
+    //shut beep 
+    HalGPIOSetLevel(HAL_BEEP_CTRL_PIN, 0);
 }
 
 void HalCommonInitialize(void)

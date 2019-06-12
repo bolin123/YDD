@@ -21,6 +21,13 @@ SysDateTime_t *SysDateTime(void)
 }
 */
 
+uint8_t SysPowerPercent(void)
+{
+     // TODO:
+    //HalADCGetValue(4);
+    return 87;
+}
+
 int SysDateTimeSet(SysDateTime_t *dateTime)
 {
     return HalRTCSetTime((HalRTCTime_t *)dateTime);
@@ -72,6 +79,18 @@ void SysArgsGetPointInfo(uint16_t id, SysDataInfo_t *info)
         addr = HAL_DATA_POINT_INFO_ADDR + ((id - 1) * sizeof(SysDataInfo_t));
         HalFlashRead(addr, (uint8_t *)info, sizeof(SysDataInfo_t));
     }
+}
+
+void SysSignalThresholdSet(uint16_t value)
+{
+    //soft step 50, from 50~300
+    uint16_t daValue = (value / 50) * HAL_DAC_STEP_VALUE + HAL_DAC_BASE_VALUE;
+    HalDACSetValue(daValue);
+}
+
+void SysBeepEnable(bool enable)
+{
+    HalBeepEnable(enable);
 }
 
 void SysArgsClear(void)
@@ -142,13 +161,17 @@ SysDataInfo_t *SysDataGetInfo(uint16_t id)
 #endif
 extern void TestCollectInit(void);
 
-static void startupLog(void)
+static void startupInit(void)
 {
     SysDataRecord_t record;
     SysCollectArgs_t args;
 
     SysArgsGetRecord(&record);
-    SysCollectArgsGet(&args);    
+    SysCollectArgsGet(&args);
+    HalBeepEnable(args.beep);
+    SysSignalThresholdSet(args.signalThreshold);
+
+    //log
     printf("\r\n-----------------------------------------------------------\r\n");
     printf("--Firmware version:%s\r\n", SYS_FIRMWARE_VERSION);
     printf("--Compile date:%s %s\r\n", __DATE__, __TIME__);
@@ -159,6 +182,14 @@ static void startupLog(void)
     printf("--Now: %d-%02d-%02d %02d:%02d:%02d\r\n", time->year, time->month, time->day, 
                                           time->hour, time->minute, time->second);
     printf("-----------------------------------------------------------\r\n");
+    
+    HalBeepSet(100);
+}
+
+void SysReboot(void)
+{
+    Syslog("");
+    HalCommonReboot();
 }
 
 void SysInitalize(void)
@@ -171,8 +202,7 @@ void SysInitalize(void)
     //TestCollectInit();
     printf("W25Q64 init %s\r\n", err < 0 ? "failed" : "success");
     YDDInitialize();
-
-    startupLog();
+    startupInit();
 }
 
 extern void TestCollectPoll(void);

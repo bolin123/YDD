@@ -15,72 +15,18 @@ void DisplayPictureShow(SysPictureID_t id)
     LCDPictureShow(id);
 }
 
-void DisplayMenuSelect(uint16_t color, SysDisplayPosition_t *top, SysDisplayPosition_t *bottom)
-{
-    LCDRectangle(0, color, top, bottom);
-}
-
-
-#if 0
-void DisplaySettingsSelect(uint8_t id, uint16_t color)
+void DisplaySelectBox(bool selected, SysDisplayPosition_t *menuPos, uint8_t width, uint8_t height)
 {
     SysDisplayPosition_t top, bottom;
-    switch(id)
-    {
-        case 0://测点
-            top.x = 137;
-            top.y = 70;
-            bottom.x = top.x + 80;
-            bottom.y = top.y + 28;
-        break;
-        case 1://测试时间
-            top.x = 137;
-            top.y = 110;
-            bottom.x = top.x + 80;
-            bottom.y = top.y + 28;
-        break;
-        case 2://蜂鸣器
-            top.x = 137;
-            top.y = 150;
-            bottom.x = top.x + 80;
-            bottom.y = top.y + 28;
-        break;
-        case 3://清除数据
-            top.x = 56;
-            top.y = 190;
-            bottom.x = top.x + 80;
-            bottom.y = top.y + 31;
-        break;
-        case 4: //信号阀值
-            top.x = 326;
-            top.y = 70;
-            bottom.x = top.x + 80;
-            bottom.y = top.y + 28;
-        break;
-        case 5: //强度报警值
-            top.x = 326;
-            top.y = 110;
-            bottom.x = top.x + 80;
-            bottom.y = top.y + 28;
-        break;
-        case 6: //振铃报警值
-            top.x = 326;
-            top.y = 150;
-            bottom.x = top.x + 80;
-            bottom.y = top.y + 28;
-        break;
-        case 7: //设置时间
-            top.x = 239;
-            top.y = 190;
-            bottom.x = top.x + 80;
-            bottom.y = top.y + 31;
-        break;
-        default:
-            return;
-    }
+    uint16_t color = selected ?  DISPLAY_COLOR_BLUE : DISPLAY_COLOR_BOTTOM;
+
+    top.x = menuPos->x - 2;
+    top.y = menuPos->y - 2;
+    bottom.x = top.x + width;
+    bottom.y = top.y + height;
+    
     LCDRectangle(0, color, &top, &bottom);
 }
-#endif
 
 void DisplayDateTimeUpdate(void)
 {
@@ -100,9 +46,10 @@ void DisplayDateTimeUpdate(void)
     LCDStringsPrint(buff, strlen(buff), &pos, false, LCD_CHAR_SIZE_12x24, DISPLAY_COLOR_BLACK, DISPLAY_COLOR_BLUE);
 }
 
-void DisplayPowerPercent(uint8_t percent)
+void DisplayPowerPercent(void)
 {
     SysDisplayPosition_t top, bottom;
+    uint8_t percent = SysPowerPercent();
     
     top.x = DISP_POWER_TOP_X;
     top.y = DISP_POWER_TOP_Y;
@@ -117,6 +64,13 @@ void DisplayPowerPercent(uint8_t percent)
         LCDRectangle(1, DISPLAY_COLOR_GREEN, &top, &bottom);
     }
     LCDRectMove(1, (100 - percent) / 2, DISPLAY_COLOR_CYAN, &top, &bottom);
+
+    char buff[5];
+    SysDisplayPosition_t pos;
+    sprintf(buff, "%02d%%", percent);
+    pos.x = 420;
+    pos.y = 8;
+    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &pos, DISPLAY_CHAR_SIZE_NORMAL);
 }
 
 void DisplayDrawRect(uint16_t color, SysDisplayPosition_t *top, SysDisplayPosition_t *bottom)

@@ -61,6 +61,8 @@ typedef struct
 
 //SysDateTime_t *SysDateTime(void);
 int SysDateTimeSet(SysDateTime_t *dateTime);
+uint8_t SysPowerPercent(void);
+void SysReboot(void);
 
 //SysDataInfo_t *SysDataGetInfo(uint16_t id);
 void SysArgsGetRecord(SysDataRecord_t *record);
@@ -68,6 +70,8 @@ void SysArgsSetRecord(SysDataRecord_t *record);
 void SysArgsGetPointInfo(uint16_t id, SysDataInfo_t *info);
 void SysArgsSetPointInfo(uint16_t id, SysDataInfo_t *info);
 void SysArgsClear(void);
+void SysBeepEnable(bool enable);
+void SysSignalThresholdSet(uint16_t value);
 
 void SysCollectArgsGet(SysCollectArgs_t *args);
 void SysCollectArgsSet(SysCollectArgs_t *args);

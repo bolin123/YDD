@@ -4,6 +4,7 @@
 #define PROTOCOL_DATA_PACKET_LENTH 32
 #define PROTOCOL_YEAR_START 2000
 #define PROTOCOL_PREAMBLE_CODE 0x02
+#define PROTOCOL_DATA_REPORT_DELAY_MS 50
 
 /*34：清空数据， 31：查询数据， 33：开始读取*/
 #define PROTOCOL_DATA_CLEAR 0x34
@@ -213,7 +214,7 @@ static void protocolDataTransfer(void)
         }
         else
         {
-            if(SysTimeHasPast(currentTranfer->lastTransTime, 100))
+            if(SysTimeHasPast(currentTranfer->lastTransTime, PROTOCOL_DATA_REPORT_DELAY_MS))
             {
                 if(currentTranfer->total - currentTranfer->size >= PROTOCOL_DATA_PACKET_LENTH)
                 {

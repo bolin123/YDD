@@ -8,10 +8,14 @@
 static DataCollectContext_t g_dcContext[DATA_COLLECT_TIME_MIN][HAL_ADC_CH_NUM];
 static uint8_t g_contextCount = 0;
 static volatile uint32_t g_freqCount[HAL_ADC_CH_NUM];
+static DataCollectEventHandle_t g_dataEventHandle = NULL;
 
-static void eventEmitt(DataCollectEvent_t event, void *args)
+static void eventEmitt(DataCollectEvent_t event, uint8_t chn, void *args)
 {
-    // TODO:
+    if(g_dataEventHandle != NULL)
+    {
+        g_dataEventHandle(event, chn, args);
+    }
 }
 
 void DataCollectFreqCount(uint8_t ch)
@@ -29,6 +33,7 @@ static void freqCountClear(uint8_t ch)
 static uint16_t  calcRawdataValue(uint8_t ch, uint16_t (*rawData)[HAL_ADC_CH_NUM], uint16_t len)
 {
     uint8_t i;
+    uint16_t result = 0;
     uint32_t count = 0;
 
     for(i = 0; i < len; i++)
@@ -36,7 +41,19 @@ static uint16_t  calcRawdataValue(uint8_t ch, uint16_t (*rawData)[HAL_ADC_CH_NUM
         count += rawData[i][ch];
     }
 
-    return (count / len);
+    result = (count / len);
+    if(ch < 3)
+    {
+        if(result > 1861)
+        {
+            result -= 1861; //1861 = 1.5/3.3*4096;
+        }
+        else
+        {
+            result = 0;
+        }
+    }
+    return result;
 }
 
 static void collectionHandle(DataCollect_st *dcollect)
@@ -55,8 +72,13 @@ static void collectionHandle(DataCollect_st *dcollect)
             {
                 //dcollect->dataBuff[ch][dcollect->dataCount] = calcRawdataValue(ch, dcollect->periodData, dcollect->periodCount);
                 g_dcContext[g_contextCount][ch].amplitude = calcRawdataValue(ch, dcollect->periodData, dcollect->periodCount);
-                g_dcContext[g_contextCount][ch].frequency = g_freqCount[ch]; // freq / (SysTime() - dcollect->periodStartTime)
+                // freq / (SysTime() - dcollect->periodStartTime)
+                float freq = (float)g_freqCount[ch] / (SysTime() - dcollect->periodStartTime);
+                g_dcContext[g_contextCount][ch].frequency = (g_freqCount[ch] * 10)/ (SysTime() - dcollect->periodStartTime); 
+                //g_dcContext[g_contextCount][ch].frequency = g_freqCount[ch];
                 freqCountClear(ch);
+
+                eventEmitt(DATA_COLLECT_EVENT_UPDATE, ch, &g_dcContext[g_contextCount][ch]);
                 printf("capture %d: CH%d, amplitude = %d, frequency = %d\r\n", dcollect->dataCount, ch, 
                                                                         g_dcContext[g_contextCount][ch].amplitude, 
                                                                         g_dcContext[g_contextCount][ch].frequency);
@@ -114,7 +136,13 @@ void DataCollectStop(DataCollect_st *dcollect)
     if(dcollect != NULL)
     {
         dcollect->start = false;
+        eventEmitt(DATA_COLLECT_EVENT_DONE, 0, NULL);
     }
+}
+
+bool DataCollectIsStart(DataCollect_st *dcollect)
+{
+    return dcollect->start;
 }
 
 void DataCollectStart(uint32_t address, DataCollect_st *dcollect)
@@ -175,6 +203,11 @@ static void testFreq(void)
     }
 }
 */
+
+void DataCollectInitialize(DataCollectEventHandle_t eventHandle)
+{
+    g_dataEventHandle = eventHandle;
+}
 
 void DataCollectPoll(DataCollect_st *dcollect)
 {

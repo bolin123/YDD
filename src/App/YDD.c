@@ -3,66 +3,45 @@
 #include "DataCollect.h"
 #include "Display.h"
 #include "DisplayCoordinate.h"
-
-/*
-#define YDD_LCD_CD_X   138
-#define YDD_LCD_CD_Y   72
-#define YDD_LCD_XHFZ_X 327
-#define YDD_LCD_XHFZ_Y YDD_LCD_CD_Y
-#define YDD_LCD_CSSJ_X YDD_LCD_CD_X
-#define YDD_LCD_CSSJ_Y (YDD_LCD_CD_Y + 40)
-#define YDD_LCD_QDBJ_X YDD_LCD_XHFZ_X
-#define YDD_LCD_QDBJ_Y YDD_LCD_CSSJ_Y
-#define YDD_LCD_BEEP_X YDD_LCD_CD_X
-#define YDD_LCD_BEEP_Y (YDD_LCD_CSSJ_Y + 40)
-#define YDD_LCD_ZLBJ_X YDD_LCD_XHFZ_X
-#define YDD_LCD_ZLBJ_Y YDD_LCD_BEEP_Y
-*/
-
-
+#include "Menu/MenuSettings.h"
+#include "Menu/MenuContact.h"
+#include "Menu/MenuDetail.h"
 
 typedef enum
 {
-    YDD_KEY_VALUE_F2 = 0,   //F2
-    YDD_KEY_VALUE_CONFIG,   //设置
-    YDD_KEY_VALUE_PAGEDOWN, //翻页
-    YDD_KEY_VALUE_F1,       //F1
-    YDD_KEY_VALUE_TOGGLE,   //切换
-    YDD_KEY_VALUE_START,    //启动
-}YDDKeyValue_t;
+    YDD_MENU_ID_DETAIL = 0,
+    YDD_MENU_ID_SETTINGS,
+    YDD_MENU_ID_CONTACTUS,
+    YDD_MENU_ID_COUNT,
+}YDDMenuId_t;
+
+typedef struct
+{
+    void (*hide)(void);
+    void (*keyHandle)(HalKeyValue_t key);
+    void (*show)(void);
+}YDDMenuHandle_t;
 
 static DataCollect_st *g_dataCollect;
-static SysPictureID_t g_curPictureId = SYS_PICTURE_DETAILS_ID;
-static YDDSettingsMenuID_t g_settingMenuid;
 
-static void showSettings(void);
-static void showDetails(void);
+static YDDMenuId_t g_menuId = YDD_MENU_ID_DETAIL;
+static YDDMenuHandle_t g_menuHandle[YDD_MENU_ID_COUNT];
+static uint16_t g_lastCollectNum = 0;
 
-//设置日期时间
-static void showDate(void)
-{
-}
-
-static void showTimeAndPower(bool force)
+static void updateTimeAndPower(void)
 {
     static uint32_t oldTime = 0;
-    SysDisplayPosition_t pos;
-    uint16_t voltage;
     
-    if(SysTimeHasPast(oldTime, 5000) || force)
+    if(SysTimeHasPast(oldTime, 10000))
     {
-        char buff[5] = {0};
+        Syslog("update");
         DisplayDateTimeUpdate(); //时间显示
-        
-        voltage = HalADCGetValue(4); //取电量值
-        DisplayPowerPercent(65);
-        sprintf(buff, "%02d%%", 65);
-        pos.x = 420;
-        pos.y = 8;
-        DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &pos, DISPLAY_CHAR_SIZE_NORMAL);
+        DisplayPowerPercent();
         oldTime = SysTime();
     }
 }
+
+#if 0
 
 static void selectBox(bool selected, SysDisplayPosition_t *menuPos, uint8_t width, uint8_t height)
 {
@@ -74,8 +53,9 @@ static void selectBox(bool selected, SysDisplayPosition_t *menuPos, uint8_t widt
     bottom.x = top.x + width;
     bottom.y = top.y + height;
     
-    DisplayMenuSelect(color, &top, &bottom);
+    //DisplaySelectBox(color, &top, &bottom);
 }
+
 
 static void displayPictureSet(SysPictureID_t pid)
 {
@@ -91,7 +71,7 @@ static void displayPictureSet(SysPictureID_t pid)
         showSettings();
         //DisplaySettingsSelect(0, DISPLAY_COLOR_BLUE);
         selectBox(true, &g_settingsPos[0], YDD_SELECT_SETTINGS_WIDTH, YDD_SELECT_SETTINGS_HEIGTH);
-        g_settingMenuid  = YDD_SETTINGS_MENUID_CSSJ;
+        g_settingMenuid  = YDD_SETTINGS_ITEMID_CSSJ;
     break;
     case SYS_PICTURE_CONTACT_ID:
     break;
@@ -106,7 +86,7 @@ static void displayPictureSet(SysPictureID_t pid)
     default:
     break;
     }
-    showTimeAndPower(true);
+    updateTimeAndPower(true);
     g_curPictureId = pid;
 }
 
@@ -126,61 +106,95 @@ static void configHandle(void)
     DisplayDrawRect(DISPLAY_COLOR_BOTTOM, &pos, &bottom);
     DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &pos, DISPLAY_CHAR_SIZE_NORMAL);
 }
+#endif
+
+static void idleDisplay(void)
+{
+    g_menuId = YDD_MENU_ID_DETAIL;
+    MenuDetailShow();
+    //updateTimeAndPower(true);
+}
+
+static void lastCollectNumDisplay(void)
+{    
+    char buff[4] = "";
+    SysDisplayPosition_t pos, bottom;
+    pos.x = 30;
+    pos.y = 235;
+
+    bottom.x = pos.x + 12 * 3;
+    bottom.y = pos.y + 24;
+    DisplayDrawRect(DISPLAY_COLOR_BOTTOM, &pos, &bottom);
+    
+    sprintf(buff, "%03d", g_lastCollectNum);
+    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &pos, DISPLAY_CHAR_SIZE_NORMAL);
+}
+
+static void collectDisplayShow(void)
+{   
+
+    DisplayPictureShow(SYS_PICTURE_CAPTURE_ID);
+    DisplayDateTimeUpdate(); //时间显示
+    DisplayPowerPercent();
+
+    lastCollectNumDisplay();
+}
+
 
 static void yddKeyEventHandle(uint8_t keyval, KeyStatus_t status, bool longpress, uint32_t lastTime)
 {
     SysDataRecord_t record;
+    SysCollectArgs_t args;
+    HalKeyValue_t value = (HalKeyValue_t)keyval;
     
-    if(lastTime > 20)
+    if(lastTime > 50)
     {
-        switch ((YDDKeyValue_t)keyval)
+        switch (value)
         {
-            case YDD_KEY_VALUE_CONFIG:
-                Syslog("YDD_KEY_VALUE_CONFIG");
+            case HAL_KEY_VALUE_CONFIG:
+                Syslog("HAL_KEY_VALUE_CONFIG");
                 
-                if(g_curPictureId == SYS_PICTURE_SETTING_ID)
+                if(!DataCollectIsStart(g_dataCollect))
                 {
-                    configHandle();
+                    g_menuHandle[g_menuId].keyHandle(value);
                 }
                 break;
-            case YDD_KEY_VALUE_PAGEDOWN:
-                Syslog("YDD_KEY_VALUE_PAGEDOWN");
-                if(status == KEY_STATUS_RELEASE)
+            case HAL_KEY_VALUE_PAGEDOWN:
+                Syslog("HAL_KEY_VALUE_PAGEDOWN");
+                if(status == KEY_STATUS_RELEASE && !DataCollectIsStart(g_dataCollect))
                 {
-                    if(g_curPictureId >= SYS_PICTURE_DETAILS_ID && g_curPictureId <= SYS_PICTURE_CONTACT_ID)
+                    g_menuHandle[g_menuId].hide();
+                    g_menuId++;
+                    if(g_menuId >= YDD_MENU_ID_COUNT)
                     {
-                        g_curPictureId++;
-                        if(g_curPictureId > SYS_PICTURE_CONTACT_ID)
-                        {
-                            g_curPictureId = SYS_PICTURE_DETAILS_ID;
-                        }
-                        displayPictureSet(g_curPictureId);
+                        g_menuId = YDD_MENU_ID_DETAIL;
                     }
+                    g_menuHandle[g_menuId].show();
+                    //updateTimeAndPower(true);
                 }
                 break;
-            case YDD_KEY_VALUE_START:
-                Syslog("YDD_KEY_VALUE_START");
-                if(status == KEY_STATUS_RELEASE)
+            case HAL_KEY_VALUE_START:
+                Syslog("HAL_KEY_VALUE_START");
+                if(status == KEY_STATUS_RELEASE && !DataCollectIsStart(g_dataCollect))
                 {
+                    g_menuHandle[g_menuId].hide();
                     SysArgsGetRecord(&record);
+                    SysCollectArgsGet(&args);
+                    g_lastCollectNum = args.runTime;
                     DataCollectStart(record.size, g_dataCollect);
-                    displayPictureSet(SYS_PICTURE_CAPTURE_ID);
+                    collectDisplayShow();
                 }
                 break;
-            case YDD_KEY_VALUE_TOGGLE:
-                Syslog("YDD_KEY_VALUE_TOGGLE");
-                if(g_curPictureId == SYS_PICTURE_SETTING_ID)
-                {
-                    //unselect front
-                    selectBox(false, &g_settingsPos[g_settingMenuid++], YDD_SELECT_SETTINGS_WIDTH, YDD_SELECT_SETTINGS_HEIGTH);
-                    if(g_settingMenuid == YDD_SETTINGS_MENUID_COUNT)
-                    {
-                        g_settingMenuid = YDD_SETTINGS_MENUID_CSSJ;
-                    }
-                    selectBox(true, &g_settingsPos[g_settingMenuid], YDD_SELECT_SETTINGS_WIDTH, YDD_SELECT_SETTINGS_HEIGTH); //select
-                }else if(g_curPictureId == SYS_PICTURE_CAPTURE_ID)
+            case HAL_KEY_VALUE_TOGGLE:
+                Syslog("HAL_KEY_VALUE_TOGGLE");
+                if(DataCollectIsStart(g_dataCollect)) //cancle
                 {
                     DataCollectStop(g_dataCollect);
+                    idleDisplay();
+                }
+                else
+                {
+                    g_menuHandle[g_menuId].keyHandle(value);
                 }
                 break;
             default:
@@ -189,6 +203,7 @@ static void yddKeyEventHandle(uint8_t keyval, KeyStatus_t status, bool longpress
     }
 }
 
+#if 0
 static void showDetails(void)
 {
     char buff[10];
@@ -263,7 +278,7 @@ static void showSettings(void)
     sprintf(buff, "%s", args.beep ? "开":"关");
     DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_settingsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
 }
-
+#endif
 /*
 static void displayUpdate(void)
 {
@@ -303,13 +318,82 @@ static void displayUpdate(void)
 }
 */
 
+static void updateCollectDisplay(uint8_t chn, DataCollectContext_t *value)
+{
+    SysDisplayPosition_t top, bottom;
+    char buff[8] = "";
+    
+    top.x = g_capturePos[chn].vltg.x;
+    top.y = g_capturePos[chn].vltg.y;
+
+    bottom.x = g_capturePos[chn].vltg.x + 12 * 4;
+    bottom.y = g_capturePos[chn].vltg.y + 24;
+    
+    sprintf(buff, "%d", value->amplitude);
+    DisplayDrawRect(DISPLAY_COLOR_BOTTOM, &top, &bottom);
+    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &top, DISPLAY_CHAR_SIZE_NORMAL);
+
+    top.x = g_capturePos[chn].freq.x;
+    top.y = g_capturePos[chn].freq.y;
+
+    bottom.x = g_capturePos[chn].freq.x + 12 * 4;
+    bottom.y = g_capturePos[chn].freq.y + 24;
+
+    uint16_t integer, decimal;
+    buff[0] = '\0';
+    integer = value->frequency / 10;
+    decimal = value->frequency % 10;
+    sprintf(buff, "%d.%d", integer, decimal);
+    //sprintf(buff, "%d", value->frequency);
+    DisplayDrawRect(DISPLAY_COLOR_BOTTOM, &top, &bottom);
+    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &top, DISPLAY_CHAR_SIZE_NORMAL);
+
+    if(chn == (HAL_ADC_CH_NUM - 1))
+    {
+        g_lastCollectNum--;
+        lastCollectNumDisplay();
+    }
+}
+
+static void dcEventHandle(DataCollectEvent_t event, uint8_t chn, void *args)
+{
+    DataCollectContext_t *context;
+    SysCollectArgs_t cargs;
+    if(event == DATA_COLLECT_EVENT_DONE)
+    {
+        idleDisplay();
+    }
+    else
+    {
+        context = (DataCollectContext_t *)args;
+        SysCollectArgsGet(&cargs);
+        if(chn != 3 && context->amplitude >= cargs.intensityAlarm || context->frequency >= cargs.ringAlarm * 10)
+        {
+            HalBeepSet(100);
+        }
+        updateCollectDisplay(chn, context);
+    }
+}
+
 void YDDInitialize(void)
 {
     KeypadInit(yddKeyEventHandle);
     DisplayInitialize();
+    DataCollectInitialize(dcEventHandle);
     g_dataCollect = DataCollectCreate();
-    displayPictureSet(SYS_PICTURE_DETAILS_ID);
-    showTimeAndPower(true);
+
+    g_menuHandle[YDD_MENU_ID_DETAIL].show = MenuDetailShow;
+    g_menuHandle[YDD_MENU_ID_DETAIL].keyHandle = MenuDetailKeyHanlde;
+    g_menuHandle[YDD_MENU_ID_DETAIL].hide = MenuDetailHide;
+    g_menuHandle[YDD_MENU_ID_SETTINGS].show = MenuSettingsShow;
+    g_menuHandle[YDD_MENU_ID_SETTINGS].keyHandle = MenuSettingsKeyHanlde;
+    g_menuHandle[YDD_MENU_ID_SETTINGS].hide = MenuSettingsHide;
+    g_menuHandle[YDD_MENU_ID_CONTACTUS].show = MenuContactShow;
+    g_menuHandle[YDD_MENU_ID_CONTACTUS].keyHandle = MenuContactKeyHanlde;
+    g_menuHandle[YDD_MENU_ID_CONTACTUS].hide = MenuContactHide;
+    
+    //displayPictureSet(SYS_PICTURE_DETAILS_ID);
+    idleDisplay();
 }
 
 void YDDPoll(void)
@@ -317,6 +401,6 @@ void YDDPoll(void)
     KeypadPoll();
     DisplayPoll();
     DataCollectPoll(g_dataCollect);
-    showTimeAndPower(false);
+    updateTimeAndPower();
 }
 

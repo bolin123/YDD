@@ -19,6 +19,17 @@ typedef enum
     SYS_PICTURE_ID_COUNT,
 }SysPictureID_t;
 
+typedef enum
+{
+    HAL_KEY_VALUE_F2 = 0,   //F2
+    HAL_KEY_VALUE_CONFIG,   //ÉèÖÃ
+    HAL_KEY_VALUE_PAGEDOWN, //·­Ò³
+    HAL_KEY_VALUE_F1,       //F1
+    HAL_KEY_VALUE_TOGGLE,   //ÇÐ»»
+    HAL_KEY_VALUE_START,    //Æô¶¯
+}HalKeyValue_t;
+
+
 #if defined(HAL_YDD_2CH_BOARD)
 #define HAL_BEEP_CTRL_PIN 0x02 //·äÃùÆ÷
 #define HAL_IO_UART_PIN  0x03  //Ä£Äâ´®¿ÚIO
@@ -42,7 +53,7 @@ typedef enum
 #endif
 
 #define HAL_ADC_CH_NUM 4
-#define HAL_DAC_BASE_VALUE 1892 //1.515v
+#define HAL_DAC_BASE_VALUE 1830 //1.51, 1.515v = 1892
 #define HAL_DAC_STEP_VALUE 62   //0.05v
 
 
