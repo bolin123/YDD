@@ -17,7 +17,7 @@ typedef struct
 
 int HalRTCSetTime(HalRTCTime_t *time);
 HalRTCTime_t * HalRTCGetTime(void);
-int HalRTCInit(void);
+uint16_t HalRTCInit(void);
 
 #endif
 

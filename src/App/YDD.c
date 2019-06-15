@@ -41,73 +41,6 @@ static void updateTimeAndPower(void)
     }
 }
 
-#if 0
-
-static void selectBox(bool selected, SysDisplayPosition_t *menuPos, uint8_t width, uint8_t height)
-{
-    SysDisplayPosition_t top, bottom;
-    uint16_t color = selected ?  DISPLAY_COLOR_BLUE : DISPLAY_COLOR_BOTTOM;
-
-    top.x = menuPos->x - 2;
-    top.y = menuPos->y - 2;
-    bottom.x = top.x + width;
-    bottom.y = top.y + height;
-    
-    //DisplaySelectBox(color, &top, &bottom);
-}
-
-
-static void displayPictureSet(SysPictureID_t pid)
-{
-//    SysDisplayPosition_t top, bottom;
-
-    DisplayPictureShow(pid);
-    switch (pid)
-    {
-    case SYS_PICTURE_DETAILS_ID:
-        showDetails();
-    break;
-    case SYS_PICTURE_SETTING_ID:
-        showSettings();
-        //DisplaySettingsSelect(0, DISPLAY_COLOR_BLUE);
-        selectBox(true, &g_settingsPos[0], YDD_SELECT_SETTINGS_WIDTH, YDD_SELECT_SETTINGS_HEIGTH);
-        g_settingMenuid  = YDD_SETTINGS_ITEMID_CSSJ;
-    break;
-    case SYS_PICTURE_CONTACT_ID:
-    break;
-    case SYS_PICTURE_DATE_ID:
-        showDate();
-    break;
-    case SYS_PICTURE_CLEAR_ID:
-    break;
-    case SYS_PICTURE_CAPTURE_ID:
-        // TODO:  capture value
-    break;
-    default:
-    break;
-    }
-    updateTimeAndPower(true);
-    g_curPictureId = pid;
-}
-
-static void configHandle(void)
-{
-    //20S、60S、120S、240S、480S、600S、800S、999S
-    static uint8_t cdnum = 2;
-    SysDisplayPosition_t pos;
-    char buff[16];
-    pos.x = g_settingsPos[0].x;
-    pos.y = g_settingsPos[0].y;
-    buff[0] = '\0';
-    sprintf(buff, "%d", cdnum++);
-    SysDisplayPosition_t bottom;
-    bottom.x = g_settingsPos[0].x + 12 * 4;
-    bottom.y = g_settingsPos[0].y + 24;
-    DisplayDrawRect(DISPLAY_COLOR_BOTTOM, &pos, &bottom);
-    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &pos, DISPLAY_CHAR_SIZE_NORMAL);
-}
-#endif
-
 static void idleDisplay(void)
 {
     g_menuId = YDD_MENU_ID_DETAIL;
@@ -147,7 +80,7 @@ static void yddKeyEventHandle(uint8_t keyval, KeyStatus_t status, bool longpress
     SysCollectArgs_t args;
     HalKeyValue_t value = (HalKeyValue_t)keyval;
     
-    if(lastTime > 50)
+    if(lastTime > 85)//防抖
     {
         switch (value)
         {
@@ -202,121 +135,6 @@ static void yddKeyEventHandle(uint8_t keyval, KeyStatus_t status, bool longpress
         }
     }
 }
-
-#if 0
-static void showDetails(void)
-{
-    char buff[10];
-    uint8_t i = 0;
-
-    /*测点数*/
-    SysDataRecord_t record;
-    SysArgsGetRecord(&record);
-    buff[0] = '\0';
-    sprintf(buff, "%d", record.num);
-    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_detailsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
-
-    /*测试时间*/
-    SysCollectArgs_t args;
-    SysCollectArgsGet(&args);
-    buff[0] = '\0';
-    sprintf(buff, "%d", args.runTime);
-    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_detailsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
-
-    /*蜂鸣器*/
-    buff[0] = '\0';
-    sprintf(buff, "%s", args.beep ? "开":"关");
-    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_detailsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
-
-    /*信号阈值*/
-    buff[0] = '\0';
-    sprintf(buff, "%d", args.signalThreshold);
-    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_detailsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
-
-    /*强度报警值*/
-    buff[0] = '\0';
-    sprintf(buff, "%d", args.intensityAlarm);
-    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_detailsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
-    
-    /*振铃报警值*/
-    buff[0] = '\0';
-    sprintf(buff, "%d", args.ringAlarm);
-    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_detailsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
-}
-
-
-
-static void showSettings(void)
-{   
-    char buff[10];
-    uint8_t i = 0;
-
-    /*测试时间*/
-    SysCollectArgs_t args;
-    SysCollectArgsGet(&args);
-    buff[0] = '\0';
-    sprintf(buff, "%d", args.runTime);
-    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_settingsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
-    
-    /*强度报警值*/
-    buff[0] = '\0';
-    sprintf(buff, "%d", args.intensityAlarm);
-    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_settingsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
-    
-    /*信号阈值*/
-    buff[0] = '\0';
-    sprintf(buff, "%d", args.signalThreshold);
-    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_settingsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
-    
-    /*振铃报警值*/
-    buff[0] = '\0';
-    sprintf(buff, "%d", args.ringAlarm);
-    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_settingsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
-
-    /*蜂鸣器*/
-    buff[0] = '\0';
-    sprintf(buff, "%s", args.beep ? "开":"关");
-    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_settingsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
-}
-#endif
-/*
-static void displayUpdate(void)
-{
-    static uint32_t lastTime;
-    static uint8_t powerpercent = 90;
-    SysDisplayPosition_t pos;
-    char buff[16] = {0};
-    pos.x = 420;
-    pos.y = 8;
-    
-    if(g_mode == YDD_MODE_WELCOME)
-    {
-        showDetails();
-        g_mode = YDD_MODE_1;
-        lastTime = SysTime();
-    }
-
-    if(SysTimeHasPast(lastTime, 2000))
-    {
-        powerpercent -= 10;
-        DisplayPowerPercent(powerpercent);
-        
-        //sprintf(buff, "  %%", powerpercent);
-
-        sprintf(buff, "%02d%%", powerpercent);
-        DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &pos, DISPLAY_CHAR_SIZE_NORMAL);
-        
-        
-        if(powerpercent == 0)
-        {
-            powerpercent = 100;
-            DisplayDateTimeUpdate();
-        }
-        
-        lastTime = SysTime();
-    }
-}
-*/
 
 static void updateCollectDisplay(uint8_t chn, DataCollectContext_t *value)
 {
@@ -375,10 +193,32 @@ static void dcEventHandle(DataCollectEvent_t event, uint8_t chn, void *args)
     }
 }
 
-void YDDInitialize(void)
+static void exceptionShow(uint16_t errcode)
+{
+    SysDisplayPosition_t pos;
+    char buff[8] = "";
+    DisplayPictureShow(SYS_PICTURE_EXCEPTION_ID);
+    pos.x = 165;
+    pos.y = 105;
+    sprintf(buff, "%d", errcode);
+    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &pos, DISPLAY_CHAR_SIZE_LARGE);
+    HalGPIOSetLevel(KEYPAD_SCAN1_PIN, 0);
+    HalGPIOSetLevel(KEYPAD_SCAN2_PIN, 0);
+    HalGPIOSetLevel(KEYPAD_SCAN3_PIN, 0);
+    while(1)
+    {
+        if(HalGPIOGetLevel(KEYPAD_CODE1_PIN) == 0 ||
+            HalGPIOGetLevel(KEYPAD_CODE2_PIN) == 0)
+        {
+            break;
+        }
+        HalWaitMs(100);
+    }
+}
+
+void YDDInitialize(uint16_t errcode)
 {
     KeypadInit(yddKeyEventHandle);
-    DisplayInitialize();
     DataCollectInitialize(dcEventHandle);
     g_dataCollect = DataCollectCreate();
 
@@ -391,7 +231,11 @@ void YDDInitialize(void)
     g_menuHandle[YDD_MENU_ID_CONTACTUS].show = MenuContactShow;
     g_menuHandle[YDD_MENU_ID_CONTACTUS].keyHandle = MenuContactKeyHanlde;
     g_menuHandle[YDD_MENU_ID_CONTACTUS].hide = MenuContactHide;
-    
+
+    if(errcode)
+    {
+        exceptionShow(errcode);
+    }
     //displayPictureSet(SYS_PICTURE_DETAILS_ID);
     idleDisplay();
 }
@@ -399,7 +243,6 @@ void YDDInitialize(void)
 void YDDPoll(void)
 {
     KeypadPoll();
-    DisplayPoll();
     DataCollectPoll(g_dataCollect);
     updateTimeAndPower();
 }

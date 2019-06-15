@@ -1,7 +1,7 @@
 #include "HalRTC.h"
 #include "HalWait.h"
 
-int HalRTCInit(void)
+uint16_t HalRTCInit(void)
 {
     uint32_t errcount = 0;
 
@@ -20,7 +20,7 @@ int HalRTCInit(void)
 
         if(RCC_GetFlagStatus(RCC_FLAG_LSERDY) == RESET) //是否成功
         {
-            return - 1;
+            return HAL_EXCEPTION_ID_RTC;
         }
 
         RCC_RTCCLKConfig(RCC_RTCCLKSource_LSE);     //设置RTC时钟(RTCCLK),选择LSE作为RTC时钟	  
@@ -51,7 +51,7 @@ int HalRTCInit(void)
 
         if((RTC->CRL & RTC_FLAG_RSF) == (uint16_t)RESET) //是否成功
         {
-            return - 1;
+            return HAL_EXCEPTION_ID_RTC;
         }
     }
 

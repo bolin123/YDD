@@ -160,6 +160,16 @@ static void lcdRecvBytes(uint8_t *data, uint16_t len)
     }
 }
 
+void LCDBrightnessSet(uint8_t value)
+{
+    uint8_t bright;
+    if(value <= 100)
+    {
+        bright = (uint8_t)((uint16_t)value * 255 / 100);
+        lcdDataSend(LCD_CMD_BRIGHTNESS, &bright, 1);
+    }
+}
+
 static void uartInit(void)
 {
     HalUartConfig_t config;

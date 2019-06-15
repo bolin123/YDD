@@ -55,7 +55,7 @@ void DisplayPowerPercent(void)
     top.y = DISP_POWER_TOP_Y;
     bottom.x = DISP_POWER_BOTTOM_X;
     bottom.y = DISP_POWER_BOTTOM_Y;
-    if(percent < 10)
+    if(percent < 15)
     {
         LCDRectangle(1, DISPLAY_COLOR_RED, &top, &bottom);
     }
@@ -67,8 +67,19 @@ void DisplayPowerPercent(void)
 
     char buff[5];
     SysDisplayPosition_t pos;
-    sprintf(buff, "%02d%%", percent);
-    pos.x = 420;
+    sprintf(buff, "%d%%", percent);
+    if(percent == 100)
+    {
+        pos.x = DISP_POWER_TOP_X;
+    }
+    else if(percent > 10)
+    {
+        pos.x = DISP_POWER_TOP_X + 6;
+    }
+    else
+    {
+        pos.x = DISP_POWER_TOP_X + 12;
+    }
     pos.y = 8;
     DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &pos, DISPLAY_CHAR_SIZE_NORMAL);
 }
@@ -99,10 +110,15 @@ void DiplayStringPrint(char * data, uint8_t len, uint16_t color, SysDisplayPosit
     LCDStringsPrint(data, len, pos, false, lsize, color, DISPLAY_COLOR_BLUE);
 }
 
+void DisplayBrightnessSet(uint8_t value)
+{
+    LCDBrightnessSet(value);
+}
+
 void DisplayInitialize(void)
 {
     LCDInitialize();
-    
+    //LCDBrightnessSet(5);
     //LCDClear();
     //LCDPictureShow(SYS_PICTURE_SETTING_ID);
     //DisplayPowerPercent(50);

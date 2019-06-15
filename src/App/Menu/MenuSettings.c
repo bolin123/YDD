@@ -357,6 +357,15 @@ static void itemSelectHandle(void)
         SysBeepEnable(g_collectArgs.beep);
         updateItemValue(YDD_SETTINGS_ITEMID_BEEP, 0, g_collectArgs.beep ? "开" : "关");
         break;
+    case YDD_SETTINGS_ITEMID_BRIGHTNESS:
+        g_collectArgs.brightness += 5;
+        if(g_collectArgs.brightness > 100)
+        {
+            g_collectArgs.brightness = 5;
+        }
+        DisplayBrightnessSet(g_collectArgs.brightness);
+        updateItemValue(YDD_SETTINGS_ITEMID_BRIGHTNESS, g_collectArgs.brightness, NULL);
+        break;
     case YDD_SETTINGS_ITEMID_CLEAR:
         clearShow();
         break;
@@ -451,6 +460,11 @@ void MenuSettingsShow(void)
     /*蜂鸣器*/
     buff[0] = '\0';
     sprintf(buff, "%s", g_collectArgs.beep ? "开":"关");
+    DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_settingsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
+
+    /*亮度*/
+    buff[0] = '\0';
+    sprintf(buff, "%d", g_collectArgs.brightness);
     DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_settingsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
 
     DisplaySelectBox(true, &g_settingsPos[YDD_SETTINGS_ITEMID_CSSJ], YDD_SELECT_SETTINGS_WIDTH, YDD_SELECT_SETTINGS_HEIGTH);

@@ -23,6 +23,7 @@ typedef enum
 
 void LCDStringsPrint(char *data, uint8_t len, SysDisplayPosition_t *pos, bool hasBgColor, 
                                 LCDCharSize_t size, uint16_t color, uint16_t bgcolor);
+void LCDBrightnessSet(uint8_t value);
 void LCDPictureShow(SysPictureID_t id);
 void LCDRectangle(uint8_t mode, uint16_t color, SysDisplayPosition_t *top, SysDisplayPosition_t *bottom);
 void LCDRectMove(uint8_t dir, uint8_t distance, uint16_t color, SysDisplayPosition_t *top, SysDisplayPosition_t *bottom);

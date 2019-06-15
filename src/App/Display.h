@@ -33,6 +33,7 @@ typedef enum
 
 void DisplayDrawRect(uint16_t color, SysDisplayPosition_t *top, SysDisplayPosition_t *bottom);
 void DisplaySelectBox(bool selected, SysDisplayPosition_t *menuPos, uint8_t width, uint8_t height);
+void DisplayBrightnessSet(uint8_t value);
 //void DisplaySettingsSelect(uint8_t id, uint16_t color);
 void DiplayStringPrint(char * data, uint8_t len, uint16_t color, SysDisplayPosition_t *pos, DisplayCharSize_t size);
 void DisplayPictureShow(SysPictureID_t id);

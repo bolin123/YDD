@@ -318,7 +318,7 @@ static uint16_t readID(void)
     return id;
 }
 
-int W25Q64Initialize(void)
+uint16_t W25Q64Initialize(void)
 {
     HalGPIOConfig(W25Q64_CS_PIN, HAL_IO_OUTPUT);
 
@@ -327,7 +327,7 @@ int W25Q64Initialize(void)
     {
         return 0;
     }
-    return -1;
+    return HAL_EXCEPTION_ID_EXFLASH;
 }
 
 void W25Q64Poll(void)

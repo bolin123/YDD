@@ -17,6 +17,7 @@ typedef enum
     YDD_SETTINGS_ITEMID_XHFZ,
     YDD_SETTINGS_ITEMID_ZLBJ,
     YDD_SETTINGS_ITEMID_BEEP,
+    YDD_SETTINGS_ITEMID_BRIGHTNESS,
     YDD_SETTINGS_ITEMID_CLEAR,
     YDD_SETTINGS_ITEMID_TIMING,
     YDD_SETTINGS_ITEMID_COUNT,
@@ -42,26 +43,15 @@ typedef enum
     YDD_CLEAR_ITEMID_COUNT,
 }YDDClearItemID_t;
 
-typedef enum
-{
-    YDD_DATE_ITEMID_YEAR = 0,
-    YDD_DATE_ITEMID_MONTH,
-    YDD_DATE_ITEMID_DAY,
-    YDD_DATE_ITEMID_HOUR,
-    YDD_DATE_ITEMID_MINUTE,
-    YDD_DATE_ITEMID_SECOND,
-    YDD_DATE_ITEMID_SURE,
-    YDD_DATE_ITEMID_CANCLE,
-}YDDDateItemID_t;
 
 // TODO: 完善坐标，修改设置界面
-static const SysDisplayPosition_t g_settingsPos[7] = {
+static const SysDisplayPosition_t g_settingsPos[YDD_SETTINGS_ITEMID_COUNT] = {
     {138, 72}, //测试时间
     {327, 72}, //强度报警
     {138, 112},//信号阀值
     {327, 112},
     {138, 152},
-    //{327, 152},
+    {327, 152},
     {56, 192},
     {239, 192},
 };
@@ -75,7 +65,7 @@ static const SysDisplayPosition_t g_detailsPos[6] = {
     {327, 152},
 };
 
-static const SysDisplayPosition_t g_timingPos[8] = {
+static const SysDisplayPosition_t g_timingPos[YDD_TIMING_ITEMID_COUNT] = {
     {30, 130}, //year
     {115, 130},//month
     {185, 130},//day

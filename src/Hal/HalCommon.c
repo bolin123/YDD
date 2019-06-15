@@ -125,9 +125,9 @@ static void halInit(void)
     HalGPIOSetLevel(HAL_BEEP_CTRL_PIN, 0);
 }
 
-void HalCommonInitialize(void)
+uint16_t HalCommonInitialize(void)
 {
-    int err;
+    uint16_t err;
     SystemInit();
     periphClockInit();
     HalGPIOInitialize();
@@ -139,7 +139,7 @@ void HalCommonInitialize(void)
     HalExtiInitialize();
     err = HalRTCInit();
     halInit();
-    printf(" RTC init %s\n", err < 0 ? "failed" : "success");
+    return err;
 }
 
 void HalCommonPoll(void)

@@ -2,30 +2,24 @@
 #include "Protocol.h"
 #include "W25Q64.h"
 #include "YDD.h"
+#include "Display.h"
 
 #define SYS_FIRMWARE_VERSION "1.0.0.1"
-/*
-SysDateTime_t *SysDateTime(void)
-{
-
-    static SysDateTime_t date;
-    date.year = 19;
-    date.month = 5;
-    date.day = 18;
-    date.hour = 10;
-    date.minute = 41;
-    date.second = 45;
-    return &date;
-
-    return (SysDateTime_t *)HalRTCGetTime();
-}
-*/
 
 uint8_t SysPowerPercent(void)
 {
-     // TODO:
-    //HalADCGetValue(4);
-    return 87;
+    int16_t max = 2619, min = 2234;
+    int8_t percent = (int8_t)((HalADCGetValue(4) - min) * 100 / (max - min));
+    if (percent > 100)
+    {
+        percent = 100;
+    }
+    else if(percent < 0)
+    {
+        percent = 0;
+    }
+    return (uint8_t)percent;
+    //return 87;
 }
 
 int SysDateTimeSet(SysDateTime_t *dateTime)
@@ -113,6 +107,8 @@ void SysCollectArgsGet(SysCollectArgs_t *args)
             args->intensityAlarm == 0xffff ||
             args->ringAlarm == 0xffff)
         {
+            args->beep = 1;
+            args->brightness = 50;
             args->signalThreshold = 150;
             args->runTime = 120;
             args->intensityAlarm = 500;
@@ -170,6 +166,7 @@ static void startupInit(void)
     SysCollectArgsGet(&args);
     HalBeepEnable(args.beep);
     SysSignalThresholdSet(args.signalThreshold);
+    DisplayBrightnessSet(args.brightness);
 
     //log
     printf("\r\n-----------------------------------------------------------\r\n");
@@ -194,14 +191,14 @@ void SysReboot(void)
 
 void SysInitalize(void)
 {
-    int err;
-    HalCommonInitialize();
+    uint16_t errcode;
+    errcode = HalCommonInitialize();
     ProtocolInitialize();
     printf(".....Hardware init....\n");
-    err = W25Q64Initialize();
-    //TestCollectInit();
-    printf("W25Q64 init %s\r\n", err < 0 ? "failed" : "success");
-    YDDInitialize();
+    errcode |= W25Q64Initialize();
+    DisplayInitialize();
+    printf("errcode = %d\r\n", errcode);
+    YDDInitialize(3);
     startupInit();
 }
 
@@ -211,6 +208,7 @@ void SysPoll(void)
     HalCommonPoll();
     ProtocolPoll();
     W25Q64Poll();
+    DisplayPoll();
     //TestCollectPoll();
     YDDPoll();
 }

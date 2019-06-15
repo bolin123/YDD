@@ -19,7 +19,7 @@ uint32_t HalGetSysTimeCount(void);
 void HalInterruptSet(bool enable);
 void HalTimerPast1ms(void);
 void HalCommonReboot(void);
-void HalCommonInitialize(void);
+uint16_t HalCommonInitialize(void);
 void HalCommonPoll(void);
 
 #endif

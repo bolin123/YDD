@@ -3,7 +3,7 @@
 
 #include "Sys.h"
 
-void YDDInitialize(void);
+void YDDInitialize(uint16_t errcode);
 void YDDPoll(void);
 #endif
 

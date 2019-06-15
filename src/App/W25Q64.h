@@ -12,7 +12,7 @@ void W25Q64PowerDown(void);
 void W25Q64Wakeup(void);
 
 uint16_t W25Q64ReadID(void);
-int W25Q64Initialize(void);
+uint16_t W25Q64Initialize(void);
 void W25Q64Poll(void);
 
 #endif

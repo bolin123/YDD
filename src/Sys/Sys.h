@@ -53,6 +53,7 @@ typedef struct
 typedef struct
 {
     uint8_t beep; //蜂鸣器开关
+    uint8_t brightness;
     uint16_t signalThreshold; //信号阈值 0~300, step 50, default 150
     uint16_t runTime;         //测试时间 20S、60S、120S、240S、480S、600S、800S、999S, default 120
     uint16_t intensityAlarm;  //强度报警值, 500~1500, step 500, default 500

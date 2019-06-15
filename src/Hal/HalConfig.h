@@ -7,6 +7,9 @@
 #define HAL_UART_PC_PORT 0 //HAL_UART_PORT_1
 #define HAL_UART_LCD_PORT 2 //HAL_UART_PORT_3
 
+#define HAL_EXCEPTION_ID_RTC     0x0001
+#define HAL_EXCEPTION_ID_EXFLASH 0x0002
+
 typedef enum
 {
     SYS_PICTURE_WELCOME_ID = 0,     //欢迎页
@@ -16,6 +19,7 @@ typedef enum
     SYS_PICTURE_DATE_ID = 4,        //日期设置
     SYS_PICTURE_CLEAR_ID = 5,       //清除
     SYS_PICTURE_CAPTURE_ID = 6,     //采集
+    SYS_PICTURE_EXCEPTION_ID = 7,   //异常
     SYS_PICTURE_ID_COUNT,
 }SysPictureID_t;
 
