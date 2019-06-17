@@ -198,7 +198,7 @@ void SysInitalize(void)
     errcode |= W25Q64Initialize();
     DisplayInitialize();
     printf("errcode = %d\r\n", errcode);
-    YDDInitialize(3);
+    YDDInitialize(errcode);
     startupInit();
 }
 
