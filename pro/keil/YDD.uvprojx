@@ -467,11 +467,6 @@
               <FilePath>..\..\src\App\W25Q64.c</FilePath>
             </File>
             <File>
-              <FileName>testCollect.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\App\testCollect.c</FilePath>
-            </File>
-            <File>
               <FileName>Keypad.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\App\Keypad.c</FilePath>
@@ -495,6 +490,21 @@
               <FileName>Display.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\App\Display.c</FilePath>
+            </File>
+            <File>
+              <FileName>MenuContact.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\App\Menu\MenuContact.c</FilePath>
+            </File>
+            <File>
+              <FileName>MenuDetail.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\App\Menu\MenuDetail.c</FilePath>
+            </File>
+            <File>
+              <FileName>MenuSettings.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\App\Menu\MenuSettings.c</FilePath>
             </File>
           </Files>
         </Group>
