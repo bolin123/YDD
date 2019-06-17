@@ -53,6 +53,10 @@ static uint16_t  calcRawdataValue(uint8_t ch, uint16_t (*rawData)[HAL_ADC_CH_NUM
             result = 0;
         }
     }
+    else
+    {
+        result = result * 10 / 157.5; //157.5 = 4096 /26MPa
+    }
     return result;
 }
 

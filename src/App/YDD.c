@@ -140,24 +140,32 @@ static void updateCollectDisplay(uint8_t chn, DataCollectContext_t *value)
 {
     SysDisplayPosition_t top, bottom;
     char buff[8] = "";
-    
+    uint16_t integer, decimal;
+
+    if(chn < 3)
+    {
+        sprintf(buff, "%d", value->amplitude);
+    }
+    else //应力通道0~26MPa
+    {
+        integer = value->amplitude / 10;
+        decimal = value->amplitude % 10;
+        sprintf(buff, "%d.%d", integer, decimal); //x.x MPa
+    }
     top.x = g_capturePos[chn].vltg.x;
     top.y = g_capturePos[chn].vltg.y;
 
     bottom.x = g_capturePos[chn].vltg.x + 12 * 4;
     bottom.y = g_capturePos[chn].vltg.y + 24;
-    
-    sprintf(buff, "%d", value->amplitude);
     DisplayDrawRect(DISPLAY_COLOR_BOTTOM, &top, &bottom);
     DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &top, DISPLAY_CHAR_SIZE_NORMAL);
-
+            
     top.x = g_capturePos[chn].freq.x;
     top.y = g_capturePos[chn].freq.y;
 
     bottom.x = g_capturePos[chn].freq.x + 12 * 4;
     bottom.y = g_capturePos[chn].freq.y + 24;
 
-    uint16_t integer, decimal;
     buff[0] = '\0';
     integer = value->frequency / 10;
     decimal = value->frequency % 10;
