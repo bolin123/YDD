@@ -3,8 +3,12 @@
 
 #include "HalCtype.h"
 
-void HalADCGetData(uint16_t *buff);
-uint16_t HalADCGetValue(uint8_t ch);
+uint16_t HalADCGetCollectValue(uint8_t ch);
+void HalADCMaxvalueClear(void);
+uint16_t HalADCGetPowerValue(void);
+
+//void HalADCGetData(uint16_t *buff);
+//uint16_t HalADCGetValue(uint8_t ch);
 void HalADCInitialize(void);
 #endif
 

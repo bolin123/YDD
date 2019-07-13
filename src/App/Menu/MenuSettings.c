@@ -34,10 +34,16 @@ static void clearNextItem(void)
 
 }
 
-static void clearItemSelectHandle(void)
+static void clearItemSelectHandle(HalKeyValue_t key)
 {
     char *notice = "数据已清空";
     SysDisplayPosition_t top;
+
+    if(key != HAL_KEY_VALUE_CONFIG)
+    {
+        return;
+    }
+    
     switch (g_clearItemId)
     {
         case YDD_CLEAR_ITEMID_SURE:
@@ -133,56 +139,73 @@ static void timingItemValueUpdate(YDDTimingItemID_t id, uint16_t value)
     DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &top, DISPLAY_CHAR_SIZE_NORMAL);    
 }
 
-static void timmingItemSelectHandle(void)
+static uint32_t calcValue(uint32_t curValue, uint32_t max, uint32_t min, bool add, uint16_t step)
 {
+    uint32_t value = curValue;
+    if(add)
+    {
+        value += step;
+        if(value > max)
+        {
+            value = min;
+        }
+    }
+    else
+    {
+        if(value <= min)
+        {
+            value = max;
+        }
+        else
+        {
+            value -= step;
+        }
+    }
+    return value;
+}
+
+static void timmingItemSelectHandle(HalKeyValue_t key)
+{
+    
+    if(g_timmingItemId == YDD_TIMING_ITEMID_SURE || g_timmingItemId == YDD_TIMING_ITEMID_CANCLE)
+    {
+        if(key != HAL_KEY_VALUE_CONFIG)
+        {
+            return ;
+        }
+    }
+    else
+    {
+        if(key == HAL_KEY_VALUE_CONFIG)
+        {
+            return ;
+        }
+    }
+    
     switch (g_timmingItemId)
     {
     case YDD_TIMING_ITEMID_YEAR:
-        g_date.year++;
-        if(g_date.year > 2099)
-        {
-            g_date.year = 2019;
-        }
+        g_date.year = (uint16_t)calcValue(g_date.year, 2099, 2019, key == HAL_KEY_VALUE_UP, 1);
         timingItemValueUpdate(YDD_TIMING_ITEMID_YEAR, g_date.year);
     break;
     case YDD_TIMING_ITEMID_MONTH:
-        g_date.month++;
-        if(g_date.month > 12)
-        {
-            g_date.month = 1;
-        }
+        g_date.month = (uint8_t)calcValue(g_date.month, 12, 1, key == HAL_KEY_VALUE_UP, 1);
         timingItemValueUpdate(YDD_TIMING_ITEMID_MONTH, g_date.month);
     break;
     case YDD_TIMING_ITEMID_DAY:
-        g_date.day++;
-        if(g_date.day > dayInMonth(g_date.year, g_date.month))
-        {
-            g_date.day = 1;
-        }
+        g_date.day = (uint8_t)calcValue(g_date.day, dayInMonth(g_date.year, g_date.month), 1, key == HAL_KEY_VALUE_UP, 1);
         timingItemValueUpdate(YDD_TIMING_ITEMID_DAY, g_date.day);
     break;
     case YDD_TIMING_ITEMID_HOUR:
-        g_date.hour++;
-        if(g_date.hour == 24)
-        {
-            g_date.hour = 0;
-        }
+        g_date.hour = (uint8_t)calcValue(g_date.hour, 23, 0, key == HAL_KEY_VALUE_UP, 1);
         timingItemValueUpdate(YDD_TIMING_ITEMID_HOUR, g_date.hour);
     break;
     case YDD_TIMING_ITEMID_MINUTE:
-        g_date.minute++;
-        if(g_date.minute == 60)
-        {
-            g_date.minute = 0;
-        }
+        g_date.minute = (uint8_t)calcValue(g_date.minute, 59, 0, key == HAL_KEY_VALUE_UP, 1);
         timingItemValueUpdate(YDD_TIMING_ITEMID_MINUTE, g_date.minute);
     break;
     case YDD_TIMING_ITEMID_SECOND:
-         g_date.second++;
-         if(g_date.second == 60)
-         {
-            g_date.second = 0;
-         }
+        g_date.second = (uint8_t)calcValue(g_date.second, 59, 0, key == HAL_KEY_VALUE_UP, 1);
          timingItemValueUpdate(YDD_TIMING_ITEMID_SECOND, g_date.second);
     break;
     case YDD_TIMING_ITEMID_SURE:
@@ -297,9 +320,26 @@ static void updateItemValue(YDDSettingsItemID_t id, uint16_t value, char *str)
     DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &top, DISPLAY_CHAR_SIZE_NORMAL);
 }
 
-static void itemSelectHandle(void)
+static void itemSelectHandle(HalKeyValue_t key)
 {
     uint8_t i, j;
+
+    if(g_settingItemId == YDD_SETTINGS_ITEMID_BEEP || \
+        g_settingItemId == YDD_SETTINGS_ITEMID_CLEAR || \
+        g_settingItemId == YDD_SETTINGS_ITEMID_TIMING)
+    {
+        if(key != HAL_KEY_VALUE_CONFIG)
+        {
+            return ;
+        }
+    }
+    else
+    {
+        if(key == HAL_KEY_VALUE_CONFIG)
+        {
+            return ;
+        }
+    }
     
     switch (g_settingItemId)
     {
@@ -308,11 +348,28 @@ static void itemSelectHandle(void)
         {
             if(g_collectArgs.runTime == CSSJ[i])
             {
-                j = i + 1;
-                if(j >= MENU_SETTINGS_CSSJ_NUM)
+            /*
+                if(key == HAL_KEY_VALUE_UP)
                 {
-                    j = 0;
+                    j = i + 1;
+                    if(j >= MENU_SETTINGS_CSSJ_NUM)
+                    {
+                        j = 0;
+                    }
                 }
+                else
+                {
+                    if(i == 0)
+                    {
+                        j = MENU_SETTINGS_CSSJ_NUM - 1;
+                    }
+                    else
+                    {
+                        j = i - 1;
+                    }
+                }
+                */
+                j = (uint8_t)calcValue(i, MENU_SETTINGS_CSSJ_NUM - 1, 0, key == HAL_KEY_VALUE_UP, 1);
                 g_collectArgs.runTime = CSSJ[j];
                 updateItemValue(YDD_SETTINGS_ITEMID_CSSJ, g_collectArgs.runTime, NULL);
                 break;
@@ -320,19 +377,11 @@ static void itemSelectHandle(void)
         }
         break;
     case YDD_SETTINGS_ITEMID_QDBJ: //500~1500,step = 500
-        g_collectArgs.intensityAlarm += 500;
-        if(g_collectArgs.intensityAlarm > 1500)
-        {
-            g_collectArgs.intensityAlarm = 500;
-        }
+        g_collectArgs.intensityAlarm = (uint16_t)calcValue(g_collectArgs.intensityAlarm, 1500, 500, key == HAL_KEY_VALUE_UP, 500);
         updateItemValue(YDD_SETTINGS_ITEMID_QDBJ, g_collectArgs.intensityAlarm, NULL);
         break;
     case YDD_SETTINGS_ITEMID_XHFZ: //50~300,step=50
-        g_collectArgs.signalThreshold += 50;
-        if(g_collectArgs.signalThreshold > 300)
-        {
-            g_collectArgs.signalThreshold = 50;
-        }
+        g_collectArgs.signalThreshold = (uint16_t)calcValue(g_collectArgs.signalThreshold, 300, 50, key == HAL_KEY_VALUE_UP, 50);
         SysSignalThresholdSet(g_collectArgs.signalThreshold);
         updateItemValue(YDD_SETTINGS_ITEMID_XHFZ, g_collectArgs.signalThreshold, NULL);
         break;
@@ -341,11 +390,7 @@ static void itemSelectHandle(void)
         {
             if(g_collectArgs.ringAlarm == ZLBJ[i])
             {
-                j = i + 1;
-                if(j >= MENU_SETTINGS_ZLBJ_NUM)
-                {
-                    j = 0;
-                }
+                j = (uint8_t)calcValue(i, MENU_SETTINGS_ZLBJ_NUM - 1, 0, key == HAL_KEY_VALUE_UP, 1);
                 g_collectArgs.ringAlarm = ZLBJ[j];
                 updateItemValue(YDD_SETTINGS_ITEMID_ZLBJ, g_collectArgs.ringAlarm, NULL);
                 break;
@@ -355,14 +400,10 @@ static void itemSelectHandle(void)
     case YDD_SETTINGS_ITEMID_BEEP:
         g_collectArgs.beep = !g_collectArgs.beep;
         SysBeepEnable(g_collectArgs.beep);
-        updateItemValue(YDD_SETTINGS_ITEMID_BEEP, 0, g_collectArgs.beep ? "开" : "关");
+        updateItemValue(YDD_SETTINGS_ITEMID_BEEP, 0, g_collectArgs.beep ? "ON" : "OFF");
         break;
     case YDD_SETTINGS_ITEMID_BRIGHTNESS:
-        g_collectArgs.brightness += 5;
-        if(g_collectArgs.brightness > 100)
-        {
-            g_collectArgs.brightness = 5;
-        }
+        g_collectArgs.brightness = (uint8_t)calcValue(g_collectArgs.brightness, 100, 5, key == HAL_KEY_VALUE_UP, 5);
         DisplayBrightnessSet(g_collectArgs.brightness);
         updateItemValue(YDD_SETTINGS_ITEMID_BRIGHTNESS, g_collectArgs.brightness, NULL);
         break;
@@ -398,18 +439,20 @@ void MenuSettingsKeyHanlde(HalKeyValue_t key)
             clearNextItem();
         }
     }
-    else if(key == HAL_KEY_VALUE_CONFIG)
+    else if(key == HAL_KEY_VALUE_CONFIG || \
+            key == HAL_KEY_VALUE_DOWN || \
+            key == HAL_KEY_VALUE_UP)
     {
         if(g_displayMenu == MSDIPLAY_MENU_MAIN)
         {
-            itemSelectHandle();
+            itemSelectHandle(key);
         }else if(g_displayMenu == MSDIPLAY_MENU_TIMING)
         {
-            timmingItemSelectHandle();
+            timmingItemSelectHandle(key);
         }
         else
         {
-            clearItemSelectHandle();
+            clearItemSelectHandle(key);
         }
     }
     else
@@ -459,7 +502,7 @@ void MenuSettingsShow(void)
 
     /*蜂鸣器*/
     buff[0] = '\0';
-    sprintf(buff, "%s", g_collectArgs.beep ? "开":"关");
+    sprintf(buff, "%s", g_collectArgs.beep ? "ON":"OFF");
     DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_settingsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
 
     /*亮度*/

@@ -5,21 +5,53 @@
 #include "Display.h"
 
 #define SYS_FIRMWARE_VERSION "1.0.0.1"
+#define SYS_POWER_ADC_NUM 10
+static uint16_t g_power[SYS_POWER_ADC_NUM];
+static uint16_t g_powerAverage = 0;
 
 uint8_t SysPowerPercent(void)
 {
-    int16_t max = 2619, min = 2234;
-    int8_t percent = (int8_t)((HalADCGetValue(4) - min) * 100 / (max - min));
-    if (percent > 100)
+    int16_t max = 3240, min = 2296; //µç³ØµçÑ¹£º2.61v ~ 1.85v
+    int8_t percent = 0;
+
+    if(g_powerAverage > max)
     {
-        percent = 100;
+        return 100;
     }
-    else if(percent < 0)
+    else if(g_powerAverage < min)
     {
-        percent = 0;
+        return 0;
     }
+    else
+    {
+        percent = (int8_t)((g_powerAverage - min) * 100 / (max - min));
+    }
+    
     return (uint8_t)percent;
     //return 87;
+}
+
+static void powerValueUpdate(void)
+{
+    static uint8_t powerNum = 0;
+    static uint32_t lastTime;
+    uint8_t i;
+    uint32_t valuecount = 0;
+
+    if(SysTimeHasPast(lastTime, 50))
+    {
+        g_power[powerNum++] = HalADCGetPowerValue();
+        if(powerNum >= SYS_POWER_ADC_NUM)
+        {
+            for(i = 0; i < powerNum; i++)
+            {
+                valuecount += g_power[i];
+            }
+            g_powerAverage = valuecount / powerNum;
+            powerNum = 0;
+        }
+        lastTime = SysTime();
+    }
 }
 
 int SysDateTimeSet(SysDateTime_t *dateTime)
@@ -211,5 +243,6 @@ void SysPoll(void)
     DisplayPoll();
     //TestCollectPoll();
     YDDPoll();
+    powerValueUpdate();
 }
 

@@ -17,7 +17,7 @@ void HalTimerInitialize(void)
     TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStruct;
 
     TIM_TimeBaseInitStruct.TIM_Prescaler = 72 - 1;
-    TIM_TimeBaseInitStruct.TIM_Period = 1000 - 5;
+    TIM_TimeBaseInitStruct.TIM_Period = 1000;
     TIM_TimeBaseInitStruct.TIM_CounterMode = TIM_CounterMode_Up;
     TIM_TimeBaseInitStruct.TIM_ClockDivision = TIM_CKD_DIV1;
     TIM_TimeBaseInitStruct.TIM_RepetitionCounter = 0;

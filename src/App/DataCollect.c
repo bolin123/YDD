@@ -9,7 +9,7 @@ static DataCollectContext_t g_dcContext[DATA_COLLECT_TIME_MIN][HAL_ADC_CH_NUM];
 static uint8_t g_contextCount = 0;
 static volatile uint32_t g_freqCount[HAL_ADC_CH_NUM];
 static DataCollectEventHandle_t g_dataEventHandle = NULL;
-
+static uint16_t g_pressBuff[DATA_COLLECT_PERIOD_NUM]; 
 static void eventEmitt(DataCollectEvent_t event, uint8_t chn, void *args)
 {
     if(g_dataEventHandle != NULL)
@@ -30,10 +30,42 @@ static void freqCountClear(uint8_t ch)
     //HalInterruptSet(true);// enable interrupt
 }
 
+static uint16_t calcPressureValue(uint16_t *data, uint16_t len)
+{
+    uint16_t i;
+    uint32_t result = 0;
+    uint32_t count = 0, average = 0;
+
+    for(i = 0; i < len; i++)
+    {
+        count += data[i];
+    }
+
+    average = (count / len);
+    result = average * 10 * 25 / 4096; //157.5 = 4096 /25MPa ,10倍存储小数点后一位，显示会自动除10
+    return result;
+}
+
+static uint16_t amplitudeExchange(uint16_t value)
+{
+    uint32_t result = 0;
+    uint32_t mv = value * 3300 / 4096;
+
+    if(mv < 1500)
+    {
+        result = 0;
+    }
+    else
+    {
+        result = mv - 1500;
+    }
+    return result;
+}
+#if 0
 static uint16_t  calcRawdataValue(uint8_t ch, uint16_t (*rawData)[HAL_ADC_CH_NUM], uint16_t len)
 {
     uint8_t i;
-    uint16_t result = 0;
+    uint32_t result = 0;
     uint32_t count = 0;
 
     for(i = 0; i < len; i++)
@@ -42,6 +74,9 @@ static uint16_t  calcRawdataValue(uint8_t ch, uint16_t (*rawData)[HAL_ADC_CH_NUM
     }
 
     result = (count / len);
+    
+    uint32_t mv = result * 3300 / 4096;
+    /*
     if(ch < 3)
     {
         if(result > 1861)
@@ -52,13 +87,25 @@ static uint16_t  calcRawdataValue(uint8_t ch, uint16_t (*rawData)[HAL_ADC_CH_NUM
         {
             result = 0;
         }
+    }*/
+    if(ch < 3)
+    {
+        if(mv < 1500)
+        {
+            result = 0;
+        }
+        else
+        {
+            result = mv - 1500;
+        }
     }
     else
     {
         result = result * 10 / 157.5; //157.5 = 4096 /26MPa
     }
-    return result;
+    return (uint16_t)result;
 }
+#endif
 
 static void collectionHandle(DataCollect_st *dcollect)
 {
@@ -67,17 +114,25 @@ static void collectionHandle(DataCollect_st *dcollect)
     if(dcollect != NULL && dcollect->start && SysTimeHasPast(dcollect->lastCollectTime, DATA_COLLECT_INTERVAL)) 
     {
     HalInterruptSet(false);// disable interrupt
-        HalADCGetData(dcollect->periodData[dcollect->periodCount++]);
+        //HalADCGetData(dcollect->periodData[dcollect->periodCount++]);
+        //dcollect->periodData[dcollect->periodCount++][3] = HalADCGetCollectValue(3);
+        g_pressBuff[dcollect->periodCount++] = HalADCGetCollectValue(3);
         
         if(dcollect->periodCount >= DATA_COLLECT_PERIOD_NUM) //生成一个测点
         {   
             printf("------------------------------------------\r\n");
             for(ch = 0; ch < HAL_ADC_CH_NUM; ch++)
             {
-                //dcollect->dataBuff[ch][dcollect->dataCount] = calcRawdataValue(ch, dcollect->periodData, dcollect->periodCount);
-                g_dcContext[g_contextCount][ch].amplitude = calcRawdataValue(ch, dcollect->periodData, dcollect->periodCount);
+                if(ch < 3)
+                {
+                    g_dcContext[g_contextCount][ch].amplitude = amplitudeExchange(HalADCGetCollectValue(ch));
+                }
+                else
+                {
+                    g_dcContext[g_contextCount][ch].amplitude = calcPressureValue(g_pressBuff, dcollect->periodCount);
+                }
                 // freq / (SysTime() - dcollect->periodStartTime)
-                float freq = (float)g_freqCount[ch] / (SysTime() - dcollect->periodStartTime);
+                //float freq = (float)g_freqCount[ch] / (SysTime() - dcollect->periodStartTime);
                 g_dcContext[g_contextCount][ch].frequency = (g_freqCount[ch] * 10)/ (SysTime() - dcollect->periodStartTime); 
                 //g_dcContext[g_contextCount][ch].frequency = g_freqCount[ch];
                 freqCountClear(ch);
@@ -87,6 +142,7 @@ static void collectionHandle(DataCollect_st *dcollect)
                                                                         g_dcContext[g_contextCount][ch].amplitude, 
                                                                         g_dcContext[g_contextCount][ch].frequency);
             }
+            HalADCMaxvalueClear();
             g_contextCount++;
             if(g_contextCount >= DATA_COLLECT_TIME_MIN) //20个点位存一次flash
             {
@@ -168,6 +224,7 @@ void DataCollectStart(uint32_t address, DataCollect_st *dcollect)
         dcollect->periodStartTime = SysTime();
         g_contextCount = 0;
     HalInterruptSet(false);// disable interrupt
+        HalADCMaxvalueClear();
         memset((void *)g_freqCount, 0, sizeof(g_freqCount)); //clear freqcount
     HalInterruptSet(true);// disable interrupt
     

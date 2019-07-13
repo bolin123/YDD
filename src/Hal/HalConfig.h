@@ -25,12 +25,23 @@ typedef enum
 
 typedef enum
 {
-    HAL_KEY_VALUE_F2 = 0,   //F2
+#if 0 //¿œº¸≈Ã
+    HAL_KEY_VALUE_DOWN = 0,   //F2
     HAL_KEY_VALUE_CONFIG,   //…Ë÷√
     HAL_KEY_VALUE_PAGEDOWN, //∑≠“≥
-    HAL_KEY_VALUE_F1,       //F1
+    HAL_KEY_VALUE_UP,       //F1
     HAL_KEY_VALUE_TOGGLE,   //«–ªª
     HAL_KEY_VALUE_START,    //∆Ù∂Ø
+#else
+
+    HAL_KEY_VALUE_START = 0,   //∆Ù∂Ø
+    HAL_KEY_VALUE_TOGGLE,      //«–ªª
+    HAL_KEY_VALUE_UP,          //‘ˆº”
+    HAL_KEY_VALUE_PAGEDOWN,    //∑≠“≥
+    HAL_KEY_VALUE_DOWN,        //ºı…Ÿ
+    HAL_KEY_VALUE_CONFIG,      //…Ë÷√
+
+#endif
 }HalKeyValue_t;
 
 

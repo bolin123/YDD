@@ -32,7 +32,7 @@ void HalExtiInitialize(void)
     EXTI_InitTypeDef EXTI_InitStructure;
     EXTI_InitStructure.EXTI_Line = EXTI_Line7 | EXTI_Line8 | EXTI_Line9; 
     EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt; 
-    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling; 
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising; 
     EXTI_InitStructure.EXTI_LineCmd = ENABLE; 
     EXTI_Init(&EXTI_InitStructure);
     EXTI_ClearITPendingBit(EXTI_Line7 | EXTI_Line8 | EXTI_Line9);

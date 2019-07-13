@@ -79,13 +79,15 @@ static void yddKeyEventHandle(uint8_t keyval, KeyStatus_t status, bool longpress
     SysDataRecord_t record;
     SysCollectArgs_t args;
     HalKeyValue_t value = (HalKeyValue_t)keyval;
-    
-    if(lastTime > 85)//·À¶¶
+
+    if(lastTime > 20)//·À¶¶
     {
         switch (value)
         {
             case HAL_KEY_VALUE_CONFIG:
-                Syslog("HAL_KEY_VALUE_CONFIG");
+            case HAL_KEY_VALUE_UP:
+            case HAL_KEY_VALUE_DOWN:
+                //Syslog("HAL_KEY_VALUE_CONFIG");
                 
                 if(!DataCollectIsStart(g_dataCollect))
                 {
@@ -93,7 +95,7 @@ static void yddKeyEventHandle(uint8_t keyval, KeyStatus_t status, bool longpress
                 }
                 break;
             case HAL_KEY_VALUE_PAGEDOWN:
-                Syslog("HAL_KEY_VALUE_PAGEDOWN");
+                //Syslog("HAL_KEY_VALUE_PAGEDOWN");
                 if(status == KEY_STATUS_RELEASE && !DataCollectIsStart(g_dataCollect))
                 {
                     g_menuHandle[g_menuId].hide();
@@ -107,7 +109,7 @@ static void yddKeyEventHandle(uint8_t keyval, KeyStatus_t status, bool longpress
                 }
                 break;
             case HAL_KEY_VALUE_START:
-                Syslog("HAL_KEY_VALUE_START");
+                //Syslog("HAL_KEY_VALUE_START");
                 if(status == KEY_STATUS_RELEASE && !DataCollectIsStart(g_dataCollect))
                 {
                     g_menuHandle[g_menuId].hide();
@@ -119,7 +121,7 @@ static void yddKeyEventHandle(uint8_t keyval, KeyStatus_t status, bool longpress
                 }
                 break;
             case HAL_KEY_VALUE_TOGGLE:
-                Syslog("HAL_KEY_VALUE_TOGGLE");
+                //Syslog("HAL_KEY_VALUE_TOGGLE");
                 if(DataCollectIsStart(g_dataCollect)) //cancle
                 {
                     DataCollectStop(g_dataCollect);

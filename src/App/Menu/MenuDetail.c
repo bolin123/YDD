@@ -45,7 +45,7 @@ void MenuDetailShow(void)
 
     /*蜂鸣器*/
     buff[0] = '\0';
-    sprintf(buff, "%s", args.beep ? "开":"关");
+    sprintf(buff, "%s", args.beep ? "ON":"OFF");
     DiplayStringPrint(buff, strlen(buff), DISPLAY_COLOR_BLACK, &g_detailsPos[i++], DISPLAY_CHAR_SIZE_NORMAL);
     
     /*振铃报警值*/
